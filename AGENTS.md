@@ -65,3 +65,39 @@ For Lumino patterns (disposables, signals, commands, etc.), see `docs/source/dev
 - Settings schemas: `packages/*/schema/*.json`
 - Jest test helpers: `testutils/` (`@jupyterlab/testutils`)
 - UI test framework: `galata/`
+
+## Cloud-specific instructions
+
+### Environment
+
+- `$HOME/.local/bin` must be on `PATH` for `jlpm`, `jupyter-lab`, `pytest`, and other pip-installed scripts.
+- Node.js 22 and Python 3.12 are pre-installed; no version manager changes needed.
+- The `python` command is not available; use `python3` instead (or invoke via `python3 -m`).
+
+### Running services
+
+- **Dev server**: `jupyter lab --dev-mode --no-browser --port=8888 --ip=0.0.0.0 --IdentityProvider.token='' --ServerApp.allow_remote_access=True`
+- The red stripe at the top of the page is expected in dev-mode (unreleased version indicator).
+- No external databases or Docker containers are required.
+
+### Build workflow
+
+See `docs/source/developer/contributing.md` for full details. The key commands from the repo root:
+
+1. `pip install -e ".[dev,test]"` — install Python package + dev/test deps
+2. `jlpm install` — install JS dependencies
+3. `jlpm run build` — full dev build (runs integrity, builds all packages and dev_mode bundle)
+4. After changing a single TS package, rebuild just the metapackage: `cd packages/metapackage && jlpm run build`
+
+### Lint
+
+- `jlpm lint:check` — runs prettier, eslint, and stylelint checks
+- `jlpm eslint:check`, `jlpm prettier:check`, `jlpm stylelint:check` — individual checks
+- Python linting uses `ruff` (configured in `pyproject.toml`)
+
+### Testing
+
+- **Python**: `python3 -m pytest jupyterlab/tests` (some network-dependent tests like `test_announcements.py` may fail in sandboxed environments)
+- **JS (single package)**: `cd packages/<pkg> && jlpm run build:test && jlpm test --runInBand`
+- **JS (all)**: `jlpm test` from repo root (runs via lerna, can be slow)
+- **UI/Galata**: `cd galata && jlpm test` (requires a running JupyterLab server)
